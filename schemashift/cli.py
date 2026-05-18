@@ -32,16 +32,41 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _load_schemas(baseline_path: str, current_path: str):
+    """Extract schemas from both files, raising SystemExit on failure.
+
+    Returns a tuple of (baseline_schema, current_schema).
+    Prints a descriptive error to stderr and returns None on failure.
+    """
+    try:
+        baseline_schema = extract_schema(baseline_path)
+    except FileNotFoundError:
+        print(f"Error: baseline file not found: {baseline_path!r}", file=sys.stderr)
+        return None
+    except ValueError as exc:
+        print(f"Error reading baseline: {exc}", file=sys.stderr)
+        return None
+
+    try:
+        current_schema = extract_schema(current_path)
+    except FileNotFoundError:
+        print(f"Error: current file not found: {current_path!r}", file=sys.stderr)
+        return None
+    except ValueError as exc:
+        print(f"Error reading current: {exc}", file=sys.stderr)
+        return None
+
+    return baseline_schema, current_schema
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    try:
-        baseline_schema = extract_schema(args.baseline)
-        current_schema = extract_schema(args.current)
-    except (FileNotFoundError, ValueError) as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+    result = _load_schemas(args.baseline, args.current)
+    if result is None:
         return 2
+    baseline_schema, current_schema = result
 
     report = detect_drift(baseline_schema, current_schema)
     write_report(report, fmt=args.fmt)
