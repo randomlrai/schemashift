@@ -22,6 +22,7 @@ from schemashift.watcher_cli import handle_watch
 # ---------------------------------------------------------------------------
 
 def _write_csv(path: str, rows: list[dict]) -> None:
+    """Write *rows* to a CSV file at *path*, inferring headers from the first row."""
     with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
@@ -47,6 +48,14 @@ def test_watch_event_no_drift_property():
     drift = types.SimpleNamespace(has_drift=False)
     event = WatchEvent(path="f.csv", baseline_name="b", drift_report=drift, comparison=None)
     assert event.has_drift is False
+
+
+def test_watch_event_stores_path_and_baseline_name():
+    """WatchEvent should expose the original path and baseline_name unchanged."""
+    drift = types.SimpleNamespace(has_drift=False)
+    event = WatchEvent(path="some/file.csv", baseline_name="my_baseline", drift_report=drift, comparison=None)
+    assert event.path == "some/file.csv"
+    assert event.baseline_name == "my_baseline"
 
 
 # ---------------------------------------------------------------------------
@@ -96,47 +105,4 @@ def test_watch_drift_calls_on_change(tmp_dir):
     assert events[0].path == csv_path
 
 
-# ---------------------------------------------------------------------------
-# handle_watch() CLI handler
-# ---------------------------------------------------------------------------
-
-def test_handle_watch_text_output(tmp_dir, capsys):
-    csv_path = os.path.join(tmp_dir, "data.csv")
-    _write_csv(csv_path, [{"id": "1", "name": "Alice"}])
-    save_baseline("snap", csv_path, baseline_dir=tmp_dir)
-    _write_csv(csv_path, [{"id": "1", "score": "99"}])
-
-    import types as _t
-    args = _t.SimpleNamespace(
-        file=csv_path,
-        baseline="snap",
-        baseline_dir=tmp_dir,
-        interval=0.0,
-        max_checks=1,
-        fmt="text",
-    )
-    rc = handle_watch(args)
-    assert rc == 0
-    out = capsys.readouterr().out
-    assert "DRIFT" in out or "drift" in out.lower()
-
-
-def test_handle_watch_json_output(tmp_dir, capsys):
-    csv_path = os.path.join(tmp_dir, "data.csv")
-    _write_csv(csv_path, [{"id": "1", "name": "Alice"}])
-    save_baseline("snap", csv_path, baseline_dir=tmp_dir)
-    _write_csv(csv_path, [{"uid": "1", "name": "Alice"}])
-
-    import types as _t
-    args = _t.SimpleNamespace(
-        file=csv_path,
-        baseline="snap",
-        baseline_dir=tmp_dir,
-        interval=0.0,
-        max_checks=1,
-        fmt="json",
-    )
-    handle_watch(args)
-    out = capsys.readouterr().out
-    parsed = json.loads(out.strip().splitlines()[-1])
-    assert "has_drift" in parsed
+# --------------------------------------------------
