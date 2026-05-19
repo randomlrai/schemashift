@@ -48,6 +48,16 @@ class ComparisonResult:
             "unchanged": len(self.unchanged),
         }
 
+    def format_summary(self) -> str:
+        """Return a human-readable one-line summary of the comparison result.
+
+        Example output::
+
+            '2 added, 1 removed, 0 type_changed, 5 unchanged'
+        """
+        counts = self.summary_counts()
+        return ", ".join(f"{v} {k}" for k, v in counts.items())
+
 
 def compare_schemas(
     old_schema: Dict[str, str],
@@ -90,7 +100,7 @@ def compare_schemas(
             )
         else:
             result.unchanged.append(
-                FieldChange(name=name, change_type="unchanged", old_type=old_t, new_type=new_t)
+                FieldChange(name=name, change_type="unchanged", old_type=old_t)
             )
 
     return result
