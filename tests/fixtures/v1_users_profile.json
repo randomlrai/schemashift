@@ -1,0 +1,33 @@
+{
+  "source": "tests/fixtures/v1_users.csv",
+  "row_count": 3,
+  "fields": [
+    {
+      "name": "id",
+      "inferred_type": "integer",
+      "null_count": 0,
+      "total_count": 3,
+      "unique_count": 3,
+      "null_rate": 0.0,
+      "sample_values": ["1", "2", "3"]
+    },
+    {
+      "name": "name",
+      "inferred_type": "string",
+      "null_count": 0,
+      "total_count": 3,
+      "unique_count": 3,
+      "null_rate": 0.0,
+      "sample_values": ["Alice", "Bob", "Carol"]
+    },
+    {
+      "name": "email",
+      "inferred_type": "string",
+      "null_count": 0,
+      "total_count": 3,
+      "unique_count": 3,
+      "null_rate": 0.0,
+      "sample_values": ["alice@example.com", "bob@example.com", "carol@example.com"]
+    }
+  ]
+}
