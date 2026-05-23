@@ -72,3 +72,18 @@ def clear_history(base_dir: Optional[Path] = None) -> int:
         except OSError:
             pass
     return removed
+
+
+def drift_rate(
+    base_dir: Optional[Path] = None,
+    baseline_name: Optional[str] = None,
+) -> float:
+    """Return the fraction of recorded runs where drift was detected.
+
+    Returns 0.0 if there are no history entries matching the filter.
+    """
+    entries = load_history(base_dir=base_dir, baseline_name=baseline_name)
+    if not entries:
+        return 0.0
+    drifted = sum(1 for e in entries if e.get("drift_detected"))
+    return drifted / len(entries)
